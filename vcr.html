@@ -2,147 +2,210 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Form VCR</title>
+<title>Form Pengajuan VCR</title>
 
 <style>
-body{font-family:Arial;background:#f4f6f8;padding:20px}
-.box{background:#fff;padding:15px;border-radius:6px;border-left:5px solid #ff8c00}
-label{font-weight:bold;font-size:13px}
-input,select{width:100%;padding:6px;margin-bottom:8px}
-.btn{background:#ff8c00;color:#fff;padding:8px;border:none;width:100%}
+body{
+  font-family:Arial;
+  background:#f4f6f8;
+  padding:20px;
+}
+
+h2{
+  color:#0b4ea2;
+}
+
+.container{
+  background:#fff;
+  padding:15px;
+  border-left:6px solid orange;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th{
+  background:#0b4ea2;
+  color:#fff;
+  padding:8px;
+}
+
+td{
+  padding:6px;
+}
+
+input,select{
+  width:100%;
+  padding:5px;
+}
+
+.btn{
+  background:orange;
+  color:#fff;
+  border:none;
+  padding:10px;
+  margin-top:10px;
+  cursor:pointer;
+}
+
 </style>
 </head>
 
 <body>
 
-<h2>Pengajuan Voucher (VCR)</h2>
+<h2>Form Pengajuan VCR</h2>
 
-<div class="box">
+<div class="container">
 
-<label>PIC</label>
-<select id="pic"></select>
+<table>
+<tr>
+  <td>PIC</td>
+  <td><select id="pic"></select></td>
 
-<label>Belongs To</label>
-<select id="belongsTo">
-<option>Ngupit</option>
-<option>Paksi</option>
-</select>
+  <td>Belong To</td>
+  <td>
+    <select id="belongs">
+      <option>Ngupit</option>
+      <option>Paksi</option>
+    </select>
+  </td>
+</tr>
 
-<label>SO Number</label>
-<select id="so"></select>
+<tr>
+  <td>Company</td>
+  <td><select id="company"></select></td>
 
-<label>BL / AWB</label>
-<input id="bl" readonly>
+  <td>SO Number</td>
+  <td><select id="so"></select></td>
+</tr>
 
-<label>No AJU</label>
-<input id="aju" readonly>
+<tr>
+  <td>BL</td>
+  <td><input id="bl" readonly></td>
 
-<label>Tujuan</label>
-<select id="tujuan">
-<option>DO</option>
-<option>Storage</option>
-<option>LOLO</option>
-<option>Handling</option>
-<option>Trucking</option>
-</select>
+  <td>No AJU</td>
+  <td><input id="aju" readonly></td>
+</tr>
 
-<label>Bank</label>
-<select id="bank">
-<option>BCA</option>
-<option>Mandiri</option>
-<option>BNI</option>
-<option>BRI</option>
-</select>
+<tr>
+  <td>Tujuan</td>
+  <td>
+    <select id="tujuan">
+      <option>Admin DO</option>
+      <option>DO</option>
+      <option>Extend DO</option>
+      <option>Storage</option>
+      <option>LOLO</option>
+      <option>Handling</option>
+      <option>Trucking</option>
+    </select>
+  </td>
 
-<label>No Rekening</label>
-<input id="rek">
+  <td>Bank</td>
+  <td>
+    <select id="bank">
+      <option>BCA</option>
+      <option>BRI</option>
+      <option>Mandiri</option>
+      <option>BNI</option>
+    </select>
+  </td>
+</tr>
 
-<label>Atas Nama</label>
-<input id="nama">
+<tr>
+  <td>No Rekening</td>
+  <td><input id="rek"></td>
 
-<label>Berita</label>
-<input id="berita">
+  <td>Atas Nama</td>
+  <td><input id="nama"></td>
+</tr>
 
-<label>Nominal</label>
-<input type="number" id="nominal">
+<tr>
+  <td>Berita</td>
+  <td colspan="3"><input id="berita"></td>
+</tr>
 
-<button class="btn" id="submit">SUBMIT</button>
+<tr>
+  <td>Nominal</td>
+  <td><input id="nominal"></td>
+</tr>
+
+</table>
+
+<button class="btn" onclick="submitData()">SUBMIT</button>
 
 </div>
 
 <script>
 
-const URL="https://script.google.com/macros/s/AKfycbzDGUYXoto4HpHLkvbMt_lvMZgBtzGxQE6BSbiyFD0BypNioJ7HMMwjflRX5UyC9RRhig/exec";
+const URL = "https://script.google.com/macros/s/AKfycbzDGUYXoto4HpHLkvbMt_lvMZgBtzGxQE6BSbiyFD0BypNioJ7HMMwjflRX5UyC9RRhig/exec";
 
-const pic=document.getElementById("pic");
-const so=document.getElementById("so");
-const bl=document.getElementById("bl");
-const aju=document.getElementById("aju");
-
-let dataSO=[];
-
-/* LOAD PIC */
+// LOAD PIC
 fetch(URL+"?type=pic")
 .then(r=>r.json())
 .then(d=>{
-  if(Array.isArray(d)){
-    d.forEach(v=>{
-      pic.innerHTML+=`<option>${v}</option>`;
-    });
-  }
+  d.forEach(v=>{
+    pic.innerHTML+=`<option>${v}</option>`;
+  });
 });
 
-/* LOAD SO */
-pic.onchange=()=>{
-  fetch(URL+"?type=so&pic="+pic.value)
+// LOAD COMPANY
+fetch(URL+"?type=company")
+.then(r=>r.json())
+.then(d=>{
+  d.forEach(v=>{
+    company.innerHTML+=`<option>${v}</option>`;
+  });
+});
+
+// LOAD SO
+company.onchange=()=>{
+  fetch(URL+`?type=so&company=${company.value}`)
   .then(r=>r.json())
   .then(d=>{
-    dataSO=d||[];
     so.innerHTML="";
-    dataSO.forEach(v=>{
-      so.innerHTML+=`<option>${v.so}</option>`;
+    d.forEach(v=>{
+      so.innerHTML+=`<option>${v}</option>`;
     });
   });
 };
 
-/* AUTO FILL */
+// LOAD DETAIL
 so.onchange=()=>{
-  const val=dataSO.find(x=>x.so===so.value);
-  if(val){
-    bl.value=val.bl||"";
-    aju.value=val.aju||"";
-  }
+  fetch(URL+`?type=detail&so=${so.value}`)
+  .then(r=>r.json())
+  .then(d=>{
+    bl.value=d.bl;
+    aju.value=d.aju;
+  });
 };
 
-/* SUBMIT */
-document.getElementById("submit").onclick=()=>{
-
-  const data={
-    pic:pic.value,
-    belongsTo:document.getElementById("belongsTo").value,
-    so:so.value,
-    bl:bl.value,
-    aju:aju.value,
-    tujuan:document.getElementById("tujuan").value,
-    bank:document.getElementById("bank").value,
-    rek:document.getElementById("rek").value,
-    nama:document.getElementById("nama").value,
-    berita:document.getElementById("berita").value,
-    nominal:document.getElementById("nominal").value
-  };
-
+// SUBMIT
+function submitData(){
   fetch(URL,{
     method:"POST",
     mode:"no-cors",
-    body:JSON.stringify(data)
-  })
-  .then(()=>{
-    alert("BERHASIL");
-    location.reload();
+    body:JSON.stringify({
+      pic:pic.value,
+      belongs:belongs.value,
+      company:company.value,
+      so:so.value,
+      bl:bl.value,
+      aju:aju.value,
+      tujuan:tujuan.value,
+      bank:bank.value,
+      rek:rek.value,
+      nama:nama.value,
+      berita:berita.value,
+      nominal:nominal.value
+    })
   });
 
-};
+  alert("Berhasil kirim");
+  location.reload();
+}
 
 </script>
 
