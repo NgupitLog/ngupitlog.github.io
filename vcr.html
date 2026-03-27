@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Form VCR</title>
+
+<style>
+body{font-family:Arial;background:#f4f6f8;padding:20px}
+.box{background:#fff;padding:15px;border-radius:6px;border-left:5px solid #ff8c00}
+label{font-weight:bold;font-size:13px}
+input,select{width:100%;padding:6px;margin-bottom:8px}
+.btn{background:#ff8c00;color:#fff;padding:8px;border:none;width:100%}
+</style>
+</head>
+
+<body>
+
+<h2>Pengajuan Voucher (VCR)</h2>
+
+<div class="box">
+
+<label>PIC</label>
+<select id="pic"></select>
+
+<label>Belongs To</label>
+<select id="belongsTo">
+<option>Ngupit</option>
+<option>Paksi</option>
+</select>
+
+<label>SO Number</label>
+<select id="so"></select>
+
+<label>BL / AWB</label>
+<input id="bl" readonly>
+
+<label>No AJU</label>
+<input id="aju" readonly>
+
+<label>Tujuan</label>
+<select id="tujuan">
+<option>DO</option>
+<option>Storage</option>
+<option>LOLO</option>
+<option>Handling</option>
+<option>Trucking</option>
+</select>
+
+<label>Bank</label>
+<select id="bank">
+<option>BCA</option>
+<option>Mandiri</option>
+<option>BNI</option>
+<option>BRI</option>
+</select>
+
+<label>No Rekening</label>
+<input id="rek">
+
+<label>Atas Nama</label>
+<input id="nama">
+
+<label>Berita</label>
+<input id="berita">
+
+<label>Nominal</label>
+<input type="number" id="nominal">
+
+<button class="btn" id="submit">SUBMIT</button>
+
+</div>
+
+<script>
+
+const URL="https://script.google.com/macros/s/AKfycbzDGUYXoto4HpHLkvbMt_lvMZgBtzGxQE6BSbiyFD0BypNioJ7HMMwjflRX5UyC9RRhig/exec";
+
+const pic=document.getElementById("pic");
+const so=document.getElementById("so");
+const bl=document.getElementById("bl");
+const aju=document.getElementById("aju");
+
+let dataSO=[];
+
+/* LOAD PIC */
+fetch(URL+"?type=pic")
+.then(r=>r.json())
+.then(d=>{
+  if(Array.isArray(d)){
+    d.forEach(v=>{
+      pic.innerHTML+=`<option>${v}</option>`;
+    });
+  }
+});
+
+/* LOAD SO */
+pic.onchange=()=>{
+  fetch(URL+"?type=so&pic="+pic.value)
+  .then(r=>r.json())
+  .then(d=>{
+    dataSO=d||[];
+    so.innerHTML="";
+    dataSO.forEach(v=>{
+      so.innerHTML+=`<option>${v.so}</option>`;
+    });
+  });
+};
+
+/* AUTO FILL */
+so.onchange=()=>{
+  const val=dataSO.find(x=>x.so===so.value);
+  if(val){
+    bl.value=val.bl||"";
+    aju.value=val.aju||"";
+  }
+};
+
+/* SUBMIT */
+document.getElementById("submit").onclick=()=>{
+
+  const data={
+    pic:pic.value,
+    belongsTo:document.getElementById("belongsTo").value,
+    so:so.value,
+    bl:bl.value,
+    aju:aju.value,
+    tujuan:document.getElementById("tujuan").value,
+    bank:document.getElementById("bank").value,
+    rek:document.getElementById("rek").value,
+    nama:document.getElementById("nama").value,
+    berita:document.getElementById("berita").value,
+    nominal:document.getElementById("nominal").value
+  };
+
+  fetch(URL,{
+    method:"POST",
+    mode:"no-cors",
+    body:JSON.stringify(data)
+  })
+  .then(()=>{
+    alert("BERHASIL");
+    location.reload();
+  });
+
+};
+
+</script>
+
+</body>
+</html>
