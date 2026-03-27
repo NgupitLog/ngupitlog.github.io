@@ -6,20 +6,51 @@
 <title>Form Voucher</title>
 
 <style>
-body{font-family:Arial;background:#f4f6f8;padding:20px}
+body{font-family:Arial,sans-serif;background:#f4f6f8;padding:20px}
 h2{color:#0b4ea2}
-.header,.so-block{background:#fff;padding:15px;border-radius:6px;margin-bottom:20px;border-left:5px solid #ff8c00}
+
+.header,.so-block{
+  background:#fff;
+  padding:15px;
+  border-radius:6px;
+  margin-bottom:20px;
+  border-left:5px solid #ff8c00;
+}
+
 label{font-size:13px;font-weight:bold}
 input,select{width:100%;padding:6px;margin-bottom:6px;font-size:13px}
+
 .row{display:flex;gap:10px;flex-wrap:wrap}
 .col{flex:1}
+.col.so{flex:2}
+.col.bl{flex:2}
+.col.eta{flex:1.4}
+.col.ship{flex:1}
+.col.qty{flex:.8}
+
 table{width:100%;border-collapse:collapse;margin-top:10px}
 th{background:#0b4ea2;color:#fff;padding:6px}
 td{padding:6px}
-.btn{background:#ff8c00;color:#fff;border:none;padding:6px 12px;border-radius:4px;cursor:pointer}
+td.aksi{text-align:center}
+
+.btn{
+  background:#ff8c00;
+  color:#fff;
+  border:none;
+  padding:6px 12px;
+  border-radius:4px;
+  cursor:pointer;
+}
 .btn-blue{background:#0b4ea2}
 .btn-danger{background:#e74c3c}
+
 .total{margin-top:8px;font-weight:bold}
+#companySearch{margin-bottom:4px}
+
+@media(max-width:768px){
+  .row{flex-direction:column}
+  .btn{width:100%}
+}
 </style>
 </head>
 
@@ -32,20 +63,24 @@ td{padding:6px}
 
     <div class="col">
       <label>PIC</label>
-      <select id="pic"></select>
+      <select id="pic">
+        <option value="">-- pilih --</option>
+      </select>
     </div>
 
     <div class="col">
       <label>Belongs To</label>
       <select id="belongsTo">
+        <option value="">-- pilih --</option>
         <option>Ngupit</option>
         <option>Paksi</option>
       </select>
     </div>
 
     <div class="col">
-      <label>Company</label>
-      <select id="company"></select>
+      <label>Company Name</label>
+      <input id="companySearch" placeholder="Cari company...">
+      <select id="companyName" size="5"></select>
     </div>
 
   </div>
@@ -58,116 +93,151 @@ td{padding:6px}
 <button class="btn" id="btnSubmit">SUBMIT</button>
 
 <script>
-const API = "https://script.google.com/macros/s/AKfycbz95w91CTqduhGUKyRvaGP70hqU7eWwdAUdMj5D7-cuwpTnzfY2eZ4lKdldgtJJf3rldw/exec";
+document.addEventListener("DOMContentLoaded", () => {
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz95w91CTqduhGUKyRvaGP70hqU7eWwdAUdMj5D7-cuwpTnzfY2eZ4lKdldgtJJf3rldw/exec";
 
 const pic = document.getElementById("pic");
-const company = document.getElementById("company");
+const belongsTo = document.getElementById("belongsTo");
+const companySearch = document.getElementById("companySearch");
+const companySelect = document.getElementById("companyName");
 const soContainer = document.getElementById("soContainer");
+const btnAddSO = document.getElementById("btnAddSO");
+const btnSubmit = document.getElementById("btnSubmit");
+
+let companyList = [];
+let submitting = false;
+
+/* ===== FORMAT DATE ===== */
+function formatDate(val){
+  if(!val) return "";
+  const d = new Date(val);
+  const day = String(d.getDate()).padStart(2,'0');
+  const month = String(d.getMonth()+1).padStart(2,'0');
+  const year = d.getFullYear();
+  return `${day}/${month}/${year}`;
+}
 
 /* LOAD PIC */
-fetch(API + "?type=pic")
-.then(r=>r.json())
-.then(d=>d.forEach(v=>pic.innerHTML+=`<option>${v}</option>`));
+fetch(SCRIPT_URL + "?type=pic")
+.then(res => res.json())
+.then(data=>{
+  if(Array.isArray(data)){
+    data.forEach(v=>{
+      pic.insertAdjacentHTML("beforeend", `<option>${v}</option>`);
+    });
+  }
+});
 
 /* LOAD COMPANY */
-fetch(API + "?type=company")
-.then(r=>r.json())
-.then(d=>d.forEach(v=>company.innerHTML+=`<option>${v}</option>`));
+fetch(SCRIPT_URL + "?type=company")
+.then(res => res.json())
+.then(data=>{
+  if(Array.isArray(data)){
+    companyList=data;
+    renderCompany(data);
+  }
+});
 
-/* ADD SO BLOCK */
+function renderCompany(list){
+  companySelect.innerHTML="";
+  list.forEach(v=>{
+    companySelect.insertAdjacentHTML("beforeend", `<option>${v}</option>`);
+  });
+}
+
+companySearch.addEventListener("input", ()=>{
+  const filtered = companyList.filter(c =>
+    c.toLowerCase().includes(companySearch.value.toLowerCase())
+  );
+  renderCompany(filtered);
+  companySelect.style.display="block";
+});
+
+companySelect.addEventListener("change", ()=>{
+  companySearch.value=companySelect.value;
+  companySelect.style.display="none";
+});
+
+/* ADD SO */
 function addSO(){
-  const el=document.createElement("div");
-  el.className="so-block";
+  const so=document.createElement("div");
+  so.className="so-block";
 
-  el.innerHTML=`
-    <button class="btn btn-danger" style="float:right">HAPUS</button>
+  so.innerHTML=`
+    <button class="btn btn-danger" style="float:right">HAPUS SO</button>
     <h3>Detail SO</h3>
 
     <div class="row">
-      <div class="col">
+      <div class="col so">
         <label>SO Number</label>
-        <select class="soNumber"></select>
+        <input class="soNumber">
       </div>
 
-      <div class="col">
+      <div class="col bl">
         <label>BL</label>
-        <input class="bl" readonly>
+        <input class="bl">
       </div>
 
-      <div class="col">
+      <div class="col bl">
         <label>AJU</label>
-        <input class="aju">
+        <input class="Aju">
       </div>
+
     </div>
 
     <table>
       <thead>
         <tr>
-          <th>Jenis Biaya</th>
-          <th>Nominal</th>
-          <th></th>
+          <th>Tujuan</th>
+          <th>Bank</th>
+          <th>No Rekening</th>
+          <th>Atas Nama</th>
+          <th>Berita TF</th>
+          <th>Nominak</th>
         </tr>
       </thead>
       <tbody class="items"></tbody>
     </table>
 
-    <button class="btn addItem">+ Tambah Biaya</button>
-    <div class="total">Total: Rp <span>0</span></div>
+    <button class="btn addBiaya">+ Tambah Biaya</button>
+    <div class="total">Total SO: Rp <span>0</span></div>
   `;
 
-  soContainer.appendChild(el);
+  soContainer.appendChild(so);
 
-  const soSelect = el.querySelector(".soNumber");
-  const blInput = el.querySelector(".bl");
+  so.querySelector(".btn-danger").onclick=()=>so.remove();
+  so.querySelector(".addBiaya").onclick=()=>addItem(so);
 
-  /* LOAD SO BASED ON COMPANY */
-  function loadSO(){
-    fetch(API + "?type=so&company=" + company.value)
-    .then(r=>r.json())
-    .then(list=>{
-      soSelect.innerHTML="";
-      list.forEach(v=>{
-        soSelect.innerHTML += `<option>${v}</option>`;
-      });
-    });
-  }
-
-  loadSO();
-
-  /* CHANGE COMPANY → reload SO */
-  company.onchange = loadSO;
-
-  /* SELECT SO → AUTO BL */
-  soSelect.onchange = ()=>{
-    fetch(API + "?type=detail&so=" + soSelect.value)
-    .then(r=>r.json())
-    .then(d=>{
-      blInput.value = d.bl || "";
-    });
-  };
-
-  el.querySelector(".btn-danger").onclick=()=>el.remove();
-  el.querySelector(".addItem").onclick=()=>addItem(el);
-
-  addItem(el);
+  addItem(so);
 }
 
-/* ADD ITEM */
 function addItem(so){
   const tr=document.createElement("tr");
   tr.innerHTML=`
     <td>
-      <select class="jenisBiaya">
+      <select class="Tujuan">
         <option>Admin DO</option>
-        <option>Trucking</option>
+        <option>DO</option>
+        <option>Extend DO</option>
+        <option>SPDO</option>
+        <option>Behandle</option>
         <option>Storage</option>
+        <option>Extend Storage</option>
+        <option>Temporary Storage</option>
+        <option>LOLO</option>
         <option>Handling</option>
+        <option>Handling SPJM</option>
+        <option>Handling Fumigasi</option>
+        <option>Undername</option>
+        <option>Coordination Fee</option>
+        <option>Trucking</option>
+        <option>Repair Container</option>
       </select>
     </td>
     <td><input type="number" class="nominal" value="0"></td>
-    <td><button class="btn btn-danger">X</button></td>
+    <td class="aksi"><button class="btn btn-danger">X</button></td>
   `;
-
   so.querySelector(".items").appendChild(tr);
 
   tr.querySelector(".nominal").oninput=()=>calc(so);
@@ -177,7 +247,6 @@ function addItem(so){
   };
 }
 
-/* TOTAL */
 function calc(so){
   let total=0;
   so.querySelectorAll(".nominal").forEach(i=>{
@@ -187,11 +256,17 @@ function calc(so){
 }
 
 /* SUBMIT */
-document.getElementById("btnSubmit").onclick=()=>{
+btnSubmit.onclick=()=>{
+  if(submitting) return;
+
+  submitting=true;
+  btnSubmit.disabled=true;
+  btnSubmit.innerText="Mengirim...";
+
   const data={
     pic:pic.value,
-    belongsTo:document.getElementById("belongsTo").value,
-    companyName:company.value,
+    belongsTo:belongsTo.value,
+    companyName:companySearch.value,
     soList:[]
   };
 
@@ -207,23 +282,32 @@ document.getElementById("btnSubmit").onclick=()=>{
     data.soList.push({
       soNumber:so.querySelector(".soNumber").value,
       bl:so.querySelector(".bl").value,
+      eta:formatDate(so.querySelector(".etaInput")?.value),
+      shipmentType:so.querySelector(".shipmentType").value,
+      qty:so.querySelector(".qtyInput").value,
       items
     });
   });
 
-  fetch(API,{
+  fetch(SCRIPT_URL,{
     method:"POST",
     mode:"no-cors",
     body:JSON.stringify(data)
-  }).then(()=>{
-    alert("Berhasil");
+  })
+  .then(()=>{
+    alert("BERHASIL — DATA TERINPUT");
     location.reload();
+  })
+  .catch(()=>alert("GAGAL"))
+  .finally(()=>{
+    submitting=false;
+    btnSubmit.disabled=false;
+    btnSubmit.innerText="SUBMIT";
   });
 };
 
-document.getElementById("btnAddSO").onclick=addSO;
+btnAddSO.onclick=addSO;
 addSO();
 
+});
 </script>
-</body>
-</html>
