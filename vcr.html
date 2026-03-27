@@ -1,210 +1,151 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Form Pengajuan VCR</title>
-
-<style>
-body{
-  font-family:Arial;
-  background:#f4f6f8;
-  padding:20px;
-}
-
-h2{
-  color:#0b4ea2;
-}
-
-.container{
-  background:#fff;
-  padding:15px;
-  border-left:6px solid orange;
-}
-
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-
-th{
-  background:#0b4ea2;
-  color:#fff;
-  padding:8px;
-}
-
-td{
-  padding:6px;
-}
-
-input,select{
-  width:100%;
-  padding:5px;
-}
-
-.btn{
-  background:orange;
-  color:#fff;
-  border:none;
-  padding:10px;
-  margin-top:10px;
-  cursor:pointer;
-}
-
-</style>
+  <meta charset="UTF-8">
+  <title>Form Pengajuan VCR</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-left: 6px solid orange;
+      max-width: 900px;
+      margin: auto;
+    }
+    h2 {
+      color: #1f4e79;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: orange;
+      border: none;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
 
-<h2>Form Pengajuan VCR</h2>
-
 <div class="container">
+  <h2>Form Pengajuan VCR</h2>
 
-<table>
-<tr>
-  <td>PIC</td>
-  <td><select id="pic"></select></td>
+  <label>PIC</label>
+  <select id="pic"></select>
 
-  <td>Belong To</td>
-  <td>
-    <select id="belongs">
-      <option>Ngupit</option>
-      <option>Paksi</option>
-    </select>
-  </td>
-</tr>
+  <label>Company</label>
+  <input type="text" id="company">
 
-<tr>
-  <td>Company</td>
-  <td><select id="company"></select></td>
+  <label>SO Number</label>
+  <select id="so"></select>
 
-  <td>SO Number</td>
-  <td><select id="so"></select></td>
-</tr>
+  <label>BL</label>
+  <input type="text" id="bl">
 
-<tr>
-  <td>BL</td>
-  <td><input id="bl" readonly></td>
+  <label>No AJU</label>
+  <input type="text" id="aju">
 
-  <td>No AJU</td>
-  <td><input id="aju" readonly></td>
-</tr>
+  <label>Tujuan</label>
+  <select id="tujuan">
+    <option>Admin DO</option>
+    <option>Operational</option>
+  </select>
 
-<tr>
-  <td>Tujuan</td>
-  <td>
-    <select id="tujuan">
-      <option>Admin DO</option>
-      <option>DO</option>
-      <option>Extend DO</option>
-      <option>Storage</option>
-      <option>LOLO</option>
-      <option>Handling</option>
-      <option>Trucking</option>
-    </select>
-  </td>
+  <label>Bank</label>
+  <select id="bank">
+    <option>BCA</option>
+    <option>Mandiri</option>
+  </select>
 
-  <td>Bank</td>
-  <td>
-    <select id="bank">
-      <option>BCA</option>
-      <option>BRI</option>
-      <option>Mandiri</option>
-      <option>BNI</option>
-    </select>
-  </td>
-</tr>
+  <label>No Rekening</label>
+  <input type="text" id="rek">
 
-<tr>
-  <td>No Rekening</td>
-  <td><input id="rek"></td>
+  <label>Atas Nama</label>
+  <input type="text" id="nama">
 
-  <td>Atas Nama</td>
-  <td><input id="nama"></td>
-</tr>
+  <label>Berita</label>
+  <input type="text" id="berita">
 
-<tr>
-  <td>Berita</td>
-  <td colspan="3"><input id="berita"></td>
-</tr>
+  <label>Nominal</label>
+  <input type="number" id="nominal">
 
-<tr>
-  <td>Nominal</td>
-  <td><input id="nominal"></td>
-</tr>
-
-</table>
-
-<button class="btn" onclick="submitData()">SUBMIT</button>
+  <button onclick="submitForm()">SUBMIT</button>
 
 </div>
 
 <script>
 
-const URL = "https://script.google.com/macros/s/AKfycbzDGUYXoto4HpHLkvbMt_lvMZgBtzGxQE6BSbiyFD0BypNioJ7HMMwjflRX5UyC9RRhig/exec";
+// 🔹 GANTI URL INI DENGAN WEB APP APPS SCRIPT
+const API_URL = "PASTE_URL_APPS_SCRIPT_KAMU_DISINI";
 
-// LOAD PIC
-fetch(URL+"?type=pic")
-.then(r=>r.json())
-.then(d=>{
-  d.forEach(v=>{
-    pic.innerHTML+=`<option>${v}</option>`;
+// LOAD DATA MASTER
+fetch(API_URL + "?action=getMaster")
+.then(res => res.json())
+.then(data => {
+
+  let picSelect = document.getElementById("pic");
+  let soSelect = document.getElementById("so");
+
+  let pics = [...new Set(data.map(d => d.pic))];
+  let sos = [...new Set(data.map(d => d.so))];
+
+  pics.forEach(p => {
+    let opt = document.createElement("option");
+    opt.value = p;
+    opt.text = p;
+    picSelect.add(opt);
   });
+
+  sos.forEach(s => {
+    let opt = document.createElement("option");
+    opt.value = s;
+    opt.text = s;
+    soSelect.add(opt);
+  });
+
 });
-
-// LOAD COMPANY
-fetch(URL+"?type=company")
-.then(r=>r.json())
-.then(d=>{
-  d.forEach(v=>{
-    company.innerHTML+=`<option>${v}</option>`;
-  });
-});
-
-// LOAD SO
-company.onchange=()=>{
-  fetch(URL+`?type=so&company=${company.value}`)
-  .then(r=>r.json())
-  .then(d=>{
-    so.innerHTML="";
-    d.forEach(v=>{
-      so.innerHTML+=`<option>${v}</option>`;
-    });
-  });
-};
-
-// LOAD DETAIL
-so.onchange=()=>{
-  fetch(URL+`?type=detail&so=${so.value}`)
-  .then(r=>r.json())
-  .then(d=>{
-    bl.value=d.bl;
-    aju.value=d.aju;
-  });
-};
 
 // SUBMIT
-function submitData(){
-  fetch(URL,{
-    method:"POST",
-    mode:"no-cors",
-    body:JSON.stringify({
-      pic:pic.value,
-      belongs:belongs.value,
-      company:company.value,
-      so:so.value,
-      bl:bl.value,
-      aju:aju.value,
-      tujuan:tujuan.value,
-      bank:bank.value,
-      rek:rek.value,
-      nama:nama.value,
-      berita:berita.value,
-      nominal:nominal.value
-    })
+function submitForm() {
+
+  let data = {
+    pic: document.getElementById("pic").value,
+    company: document.getElementById("company").value,
+    so: document.getElementById("so").value,
+    bl: document.getElementById("bl").value,
+    aju: document.getElementById("aju").value,
+    tujuan: document.getElementById("tujuan").value,
+    bank: document.getElementById("bank").value,
+    rek: document.getElementById("rek").value,
+    nama: document.getElementById("nama").value,
+    berita: document.getElementById("berita").value,
+    nominal: document.getElementById("nominal").value
+  };
+
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify(data)
+  })
+  .then(res => res.text())
+  .then(res => {
+    alert("Berhasil submit!");
+    location.reload();
   });
 
-  alert("Berhasil kirim");
-  location.reload();
 }
 
 </script>
