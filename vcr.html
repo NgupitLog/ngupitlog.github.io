@@ -6,20 +6,67 @@
 <title>Form Voucher</title>
 
 <style>
-body{font-family:Arial;background:#f4f6f8;padding:20px}
-h2{color:#0b4ea2}
-.header,.so-block{background:#fff;padding:15px;border-radius:6px;margin-bottom:20px;border-left:5px solid #ff8c00}
-label{font-size:13px;font-weight:bold}
-input,select{width:100%;padding:6px;margin-bottom:6px;font-size:13px}
-.row{display:flex;gap:10px;flex-wrap:wrap}
-.col{flex:1}
-.btn{background:#ff8c00;color:#fff;border:none;padding:6px 12px;border-radius:4px;cursor:pointer}
+body{font-family:Arial;background:#f4f6f8;padding:20px;margin:0}
+h2{color:#0b4ea2;margin-bottom:10px}
+
+.header,.so-block{
+  background:#fff;
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:15px;
+  border-left:5px solid #ff8c00;
+}
+
+label{font-size:12px;font-weight:bold}
+input,select{
+  width:100%;
+  padding:6px;
+  font-size:13px;
+  box-sizing:border-box;
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.col{
+  flex:1;
+  min-width:150px;
+}
+
+.btn{
+  background:#ff8c00;
+  color:#fff;
+  border:none;
+  padding:6px 12px;
+  border-radius:5px;
+  cursor:pointer;
+}
+
 .btn-blue{background:#0b4ea2}
-.btn-danger{background:#e74c3c}
-table{width:100%;border-collapse:collapse;margin-top:10px}
-th{background:#0b4ea2;color:#fff;padding:6px}
-td{padding:6px}
-.total{margin-top:8px;font-weight:bold}
+.btn-delete{
+  background:#e74c3c;
+  border:none;
+  color:#fff;
+  border-radius:5px;
+  padding:4px 8px;
+  cursor:pointer;
+}
+
+table{width:100%;margin-top:10px}
+th{background:#0b4ea2;color:#fff;padding:6px;font-size:12px}
+td{padding:4px}
+
+.total{margin-top:8px;font-weight:bold;font-size:13px}
+
+/* MOBILE FIX */
+@media(max-width:768px){
+  table, thead, tbody, th, td, tr{display:block}
+  th{display:none}
+  td{margin-bottom:6px}
+}
 </style>
 </head>
 
@@ -31,7 +78,7 @@ td{padding:6px}
 <div class="row">
 
 <div class="col">
-<label>PIC</label>
+<label>Request By</label>
 <select id="pic"></select>
 </div>
 
@@ -46,7 +93,7 @@ td{padding:6px}
 <div class="col">
 <label>Company</label>
 <input id="companySearch" placeholder="Cari company...">
-<select id="companyName" size="5"></select>
+<select id="companyName" size="4"></select>
 </div>
 
 </div>
@@ -68,7 +115,7 @@ fetch(API+"?type=pic")
 .then(r=>r.json())
 .then(d=>{
   d.forEach(v=>{
-    pic.insertAdjacentHTML("beforeend",`<option>${v}</option>`);
+    pic.innerHTML+=`<option>${v}</option>`;
   });
 });
 
@@ -83,19 +130,38 @@ fetch(API+"?type=company")
 function renderCompany(list){
   companyName.innerHTML="";
   list.forEach(v=>{
-    companyName.insertAdjacentHTML("beforeend",`<option>${v}</option>`);
+    companyName.innerHTML+=`<option>${v}</option>`;
   });
 }
 
+/* SEARCH COMPANY */
 companySearch.oninput=()=>{
   const f=companyList.filter(c=>c.toLowerCase().includes(companySearch.value.toLowerCase()));
   renderCompany(f);
 };
 
+/* PILIH COMPANY → LOAD SO */
 companyName.onchange=()=>{
   companySearch.value=companyName.value;
-  companyName.style.display="none";
+  loadSO();
 };
+
+/* LOAD SO GLOBAL */
+function loadSO(){
+  const company = companySearch.value.trim();
+  if(!company) return;
+
+  fetch(API+"?type=so&company="+encodeURIComponent(company))
+  .then(r=>r.json())
+  .then(d=>{
+    document.querySelectorAll(".soNumber").forEach(select=>{
+      select.innerHTML="<option value=''>-- pilih SO --</option>";
+      d.forEach(v=>{
+        select.innerHTML+=`<option>${v}</option>`;
+      });
+    });
+  });
+}
 
 /* ADD SO */
 function addSO(){
@@ -103,7 +169,7 @@ function addSO(){
   el.className="so-block";
 
   el.innerHTML=`
-  <button class="btn btn-danger" style="float:right">HAPUS</button>
+  <button class="btn-delete">🗑</button>
 
   <div class="row">
     <div class="col">
@@ -129,7 +195,7 @@ function addSO(){
         <th>Bank</th>
         <th>No Rek</th>
         <th>Atas Nama</th>
-        <th>Berita TF</th>
+        <th>Berita</th>
         <th>Nominal</th>
         <th></th>
       </tr>
@@ -146,30 +212,16 @@ function addSO(){
   const soSelect = el.querySelector(".soNumber");
   const blInput = el.querySelector(".bl");
 
-  /* LOAD SO BERDASARKAN COMPANY */
-  companySearch.addEventListener("change", loadSO);
-
-  function loadSO(){
-    fetch(API+"?type=so&company="+companySearch.value)
-    .then(r=>r.json())
-    .then(d=>{
-      soSelect.innerHTML="<option value=''>-- pilih --</option>";
-      d.forEach(v=>{
-        soSelect.insertAdjacentHTML("beforeend",`<option>${v}</option>`);
-      });
-    });
-  }
-
   /* AUTO BL */
   soSelect.onchange=()=>{
-    fetch(API+"?type=detail&so="+soSelect.value)
+    fetch(API+"?type=detail&so="+encodeURIComponent(soSelect.value))
     .then(r=>r.json())
     .then(d=>{
       blInput.value=d.bl||"";
     });
   };
 
-  el.querySelector(".btn-danger").onclick=()=>el.remove();
+  el.querySelector(".btn-delete").onclick=()=>el.remove();
   el.querySelector(".addItem").onclick=()=>addItem(el);
 
   addItem(el);
@@ -182,22 +234,13 @@ function addItem(parent){
   tr.innerHTML=`
   <td>
     <select class="tujuan">
-      <option>Admin DO</option>
-      <option>DO</option>
-      <option>Extend DO</option>
-      <option>SPDO</option>
-      <option>Behandle</option>
-      <option>Storage</option>
-      <option>Extend Storage</option>
-      <option>Temporary Storage</option>
-      <option>LOLO</option>
-      <option>Handling</option>
-      <option>Handling SPJM</option>
-      <option>Handling Fumigasi</option>
-      <option>Undername</option>
-      <option>Coordination Fee</option>
-      <option>Trucking</option>
-      <option>Repair Container</option>
+      <option>Admin DO</option><option>DO</option><option>Extend DO</option>
+      <option>SPDO</option><option>Behandle</option><option>Storage</option>
+      <option>Extend Storage</option><option>Temporary Storage</option>
+      <option>LOLO</option><option>Handling</option>
+      <option>Handling SPJM</option><option>Handling Fumigasi</option>
+      <option>Undername</option><option>Coordination Fee</option>
+      <option>Trucking</option><option>Repair Container</option>
     </select>
   </td>
 
@@ -213,11 +256,11 @@ function addItem(parent){
     </select>
   </td>
 
-  <td><input class="rek" inputmode="numeric"></td>
+  <td><input class="rek"></td>
   <td><input class="nama"></td>
   <td><input class="berita"></td>
   <td><input type="number" class="nominal" value="0"></td>
-  <td><button class="btn btn-danger">X</button></td>
+  <td><button class="btn-delete">X</button></td>
   `;
 
   parent.querySelector(".items").appendChild(tr);
@@ -227,7 +270,7 @@ function addItem(parent){
   };
 
   tr.querySelector(".nominal").oninput=()=>calc(parent);
-  tr.querySelector("button").onclick=()=>{
+  tr.querySelector(".btn-delete").onclick=()=>{
     tr.remove();
     calc(parent);
   };
